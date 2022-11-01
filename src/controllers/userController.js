@@ -12,22 +12,32 @@ const {
   isValidObjectId,
 }= require ("../utils/validation.js");
 
-const  uploadFile =require ("../utils/aws.js");
+const  uploadFile  = require('../utils/aws')
 
 //POST /register
 
 const register = async (req, res) => {
   try {
     const data = req.body;
-    
+
+        
     const files = req.files;
+   
+    if (files.length == 0)
+    return res
+      .status(400)
+      .send({ status: false, message: `profileImage is Required` });
+
+
+    
+    let profileImg = await uploadFile(files[0]);
+
+
+    
+    data.profileImage = profileImg;
+
     
 
-   
-        if (files.length == 0)
-      return res
-        .status(400)
-        .send({ status: false, message: `profileImage is Required` });
 
     let { fname, lname, email, phone, password, address } = data;
 
@@ -164,9 +174,6 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     data.password = hashedPassword;
-
-    let profileImg = await uploadFile(files[0]);
-    data.profileImage = profileImg;
 
     const finaldata = await userModel.create(data);
 
